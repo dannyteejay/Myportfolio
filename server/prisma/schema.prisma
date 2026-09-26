@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  password     String
+  name         String
+  role         String         @default("ADMIN")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  category    String   // "software" | "webdesign"
+  summary     String
+  description String
+  coverImage  String?
+  liveUrl     String?
+  repoUrl     String?
+  tags        String[] @default([])
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  price       Int      // price in kobo (NGN minor units)
+  currency    String   @default("NGN")
+  coverImage  String?
+  fileUrl     String?  // downloadable asset (for digital products)
+  tags        String[] @default([])
+  published   Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  name      String
+  category  String   @default("general")
+  level     Int      @default(80) // 0-100
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Profile {
+  id         String   @id @default("singleton")
+  name       String
+  title      String
+  metaTitle  String?
+  tagline    String
+  bio        String
+  email      String
+  location   String?
+  avatar     String?
+  githubUrl  String?
+  linkedinUrl String?
+  twitterUrl String?
+  websiteUrl String?
+  resumeUrl  String?
+  updatedAt  DateTime @updatedAt
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id           String   @id @default(cuid())
+  reference    String   @unique
+  productId    String?
+  productTitle String
+  email        String
+  amount       Int // minor units (kobo/cents)
+  currency     String   @default("NGN")
+  gateway      String // paystack | flutterwave | crypto | bank
+  status       String   @default("pending") // pending | paid | failed | cancelled
+  providerRef  String? // gateway transaction id / invoice id
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model PaymentSettings {
+  id                 String  @id @default("singleton")
+  paystackEnabled    Boolean @default(true)
+  flutterwaveEnabled Boolean @default(true)
+  cryptoEnabled      Boolean @default(true)
+  bankEnabled        Boolean @default(true)
+  bankName           String?
+  bankAccountName    String?
+  bankAccountNumber  String?
+  bankInstructions   String?
+  cryptoNote         String?
+  updatedAt          DateTime @updatedAt
+}

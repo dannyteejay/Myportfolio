@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   Theme tokens. Light is the default (:root); .dark overrides for dark mode.
+   Values are space-separated RGB channels so Tailwind's rgb(var() / alpha)
+   syntax works (e.g. bg-ink-900/60, ring-line/10).
+--------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --ink-50: 15 20 32;
+  --ink-100: 17 24 39;
+  --ink-200: 36 44 60;
+  --ink-300: 58 67 84;
+  --ink-400: 82 92 110;
+  --ink-500: 100 110 128;
+  --ink-600: 120 130 148;
+  --ink-700: 203 209 219;
+  --ink-800: 226 230 236;
+  --ink-900: 255 255 255;
+  --ink-950: 247 248 250;
+
+  --heading: 12 18 32;
+  --line: 15 23 42;
+
+  --nav-bg: 255 255 255;
+  --nav-alpha: 0.72;
+
+  --grad-1: 30 59 245;
+  --grad-2: 53 93 255;
+  --grad-3: 124 58 237;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --ink-50: 246 247 249;
+  --ink-100: 236 238 242;
+  --ink-200: 213 217 226;
+  --ink-300: 176 184 200;
+  --ink-400: 133 146 168;
+  --ink-500: 102 115 141;
+  --ink-600: 81 92 116;
+  --ink-700: 66 75 94;
+  --ink-800: 58 65 80;
+  --ink-900: 11 15 26;
+  --ink-950: 6 8 17;
+
+  --heading: 248 250 252;
+  --line: 255 255 255;
+
+  --nav-bg: 6 8 17;
+  --nav-alpha: 0.7;
+
+  --grad-1: 142 177 255;
+  --grad-2: 90 134 255;
+  --grad-3: 167 139 255;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ink-950 text-ink-100 font-sans antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Selection */
+::selection {
+  background: rgba(53, 93, 255, 0.28);
+  color: rgb(var(--heading));
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--ink-950));
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--line) / 0.18);
+  border-radius: 999px;
+  border: 2px solid rgb(var(--ink-950));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--line) / 0.3);
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/70 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-brand-500 text-white hover:bg-brand-400 shadow-glow;
+  }
+  .btn-ghost {
+    @apply btn bg-line/5 text-ink-100 hover:bg-line/10 ring-1 ring-line/10;
+  }
+  .btn-danger {
+    @apply btn bg-red-500/90 text-white hover:bg-red-500;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-lg;
+  }
+  .card {
+    @apply rounded-2xl bg-ink-900/60 ring-1 ring-line/10 backdrop-blur;
+  }
+  .input {
+    @apply w-full rounded-xl bg-ink-900/70 px-4 py-2.5 text-sm text-ink-100 ring-1 ring-line/10 placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-brand-400/70 transition;
+  }
+  .label {
+    @apply block text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1.5;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full bg-line/5 px-3 py-1 text-xs font-medium text-ink-300 ring-1 ring-line/10;
+  }
+  .section-title {
+    @apply font-display text-3xl sm:text-4xl font-bold tracking-tight text-heading;
+  }
+}
+
+.glass-nav {
+  background: rgb(var(--nav-bg) / var(--nav-alpha));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.grad-text {
+  background: linear-gradient(
+    120deg,
+    rgb(var(--grad-1)) 0%,
+    rgb(var(--grad-2)) 45%,
+    rgb(var(--grad-3)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(90, 134, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 134, 255, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+.spark {
+  background: radial-gradient(circle at 30% 20%, rgba(90, 134, 255, 0.22), transparent 55%),
+    radial-gradient(circle at 80% 60%, rgba(167, 139, 255, 0.16), transparent 55%);
+}
