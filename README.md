@@ -65,13 +65,12 @@ npm install
 npm run dev              # http://localhost:5173  (proxies /api to :4000)
 ```
 
-### Default admin login
-```
-Email:    admin@portfolio.dev
-Password: Admin123!
-```
-> Change these via `ADMIN_EMAIL` / `ADMIN_PASSWORD` before seeding in production,
-> and set strong `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` values.
+### Admin login
+
+Set your own credentials before seeding via the `ADMIN_EMAIL` and
+`ADMIN_PASSWORD` environment variables, and use strong
+`JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` values in production.
+Then log in at `/admin/login`.
 
 ## Admin dashboard
 Visit `/admin/login`. From the dashboard you can fully manage:
