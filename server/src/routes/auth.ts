@@ -1,99 +1,90 @@
-import { Router } from "express";
-import { z } from "zod";
-import { prisma } from "../prisma.js";
-import {
-  AuthedRequest,
-  issueRefreshToken,
-  requireAuth,
-  revokeRefreshToken,
-  rotateRefreshToken,
-  signAccessToken,
-  verifyPassword,
-} from "../auth.js";
-import { HttpError, ok } from "../utils.js";
-import { env } from "../env.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
+import type { NextFunction, Request, Response } from "express";
+import { env } from "./env.js";
+import { prisma } from "./prisma.js";
+import { HttpError } from "./utils.js";
 
-const router = Router();
+export interface AuthPayload {
+  sub: string;
+  email: string;
+  role: string;
+}
 
-const REFRESH_COOKIE = "refresh_token";
-const cookieOpts = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: env.NODE_ENV === "production",
-  path: "/api/auth",
-  maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
-};
+export interface AuthedRequest extends Request {
+  user?: AuthPayload;
+}
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+export function hashPassword(pw: string) {
+  return bcrypt.hash(pw, 10);
+}
 
-router.post("/login", async (req, res, next) => {
-  try {
-    const { email, password } = loginSchema.parse(req.body);
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !(await verifyPassword(password, user.password))) {
-      throw new HttpError(401, "Invalid email or password");
-    }
-    const accessToken = signAccessToken({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    });
-    const refreshToken = await issueRefreshToken(user.id);
-    res.cookie(REFRESH_COOKIE, refreshToken, cookieOpts);
-    ok(res, {
-      accessToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
-    });
-  } catch (e) {
-    next(e);
+export function verifyPassword(pw: string, hash: string) {
+  return bcrypt.compare(pw, hash);
+}
+
+export function signAccessToken(payload: AuthPayload): string {
+  return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
+    expiresIn: env.ACCESS_TOKEN_TTL as any,
+  });
+}
+
+export function newRefreshTokenValue(): string {
+  return crypto.randomBytes(48).toString("hex");
+}
+
+export async function issueRefreshToken(userId: string): Promise<string> {
+  const token = newRefreshTokenValue();
+  const expiresAt = new Date(
+    Date.now() + env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000
+  );
+  await prisma.refreshToken.create({ data: { token, userId, expiresAt } });
+  return token;
+}
+
+export async function rotateRefreshToken(oldToken: string) {
+  const existing = await prisma.refreshToken.findUnique({
+    where: { token: oldToken },
+    include: { user: true },
+  });
+  if (!existing) throw new HttpError(401, "Invalid refresh token");
+
+  // Atomically remove the token. deleteMany never throws if the row is already
+  // gone (e.g. a concurrent refresh already rotated it), avoiding a 500/P2025.
+  const { count } = await prisma.refreshToken.deleteMany({
+    where: { id: existing.id },
+  });
+  if (count === 0) {
+    // Another request already used this token — treat as unauthenticated.
+    throw new HttpError(401, "Refresh token already used");
   }
-});
 
-router.post("/refresh", async (req, res, next) => {
-  try {
-    const token = req.cookies?.[REFRESH_COOKIE];
-    if (!token) throw new HttpError(401, "No refresh token");
-    const { user, refreshToken } = await rotateRefreshToken(token);
-    const accessToken = signAccessToken({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    });
-    res.cookie(REFRESH_COOKIE, refreshToken, cookieOpts);
-    ok(res, {
-      accessToken,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
-    });
-  } catch (e) {
-    next(e);
+  if (existing.expiresAt < new Date()) {
+    throw new HttpError(401, "Refresh token expired");
   }
-});
 
-router.post("/logout", async (req, res, next) => {
+  const newToken = await issueRefreshToken(existing.userId);
+  return { user: existing.user, refreshToken: newToken };
+}
+
+export async function revokeRefreshToken(token: string) {
+  await prisma.refreshToken.deleteMany({ where: { token } });
+}
+
+export function requireAuth(
+  req: AuthedRequest,
+  _res: Response,
+  next: NextFunction
+) {
+  const header = req.headers.authorization;
+  const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) return next(new HttpError(401, "Not authenticated"));
   try {
-    const token = req.cookies?.[REFRESH_COOKIE];
-    if (token) await revokeRefreshToken(token);
-    res.clearCookie(REFRESH_COOKIE, { ...cookieOpts, maxAge: undefined });
-    ok(res, { success: true });
-  } catch (e) {
-    next(e);
+    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as AuthPayload;
+    req.user = payload;
+    next();
+  } catch {
+    next(new HttpError(401, "Invalid or expired token"));
   }
-});
-
-router.get("/me", requireAuth, async (req: AuthedRequest, res, next) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.sub },
-      select: { id: true, email: true, name: true, role: true },
-    });
-    if (!user) throw new HttpError(404, "User not found");
-    ok(res, { user });
-  } catch (e) {
-    next(e);
-  }
-});
-
-export default router;
+}
