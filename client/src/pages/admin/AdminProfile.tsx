@@ -73,14 +73,25 @@ export default function AdminProfile() {
             />
           </Field>
           <Field
-            label="Browser tab title"
-            hint="Shown on the browser tab & in search results. Leave blank to use 'Name — Title'."
+            label="Browser tab / preview title"
+            hint="Shown on the browser tab, in search results, and in link previews (WhatsApp, etc). Leave blank to use 'Name — Title'."
           >
             <input
               className="input"
               value={form.metaTitle ?? ""}
               onChange={(e) => set("metaTitle", e.target.value)}
-              placeholder="e.g. Alex Morgan — Engineer & Designer"
+              placeholder="e.g. Daniel John — Full-Stack Engineer"
+            />
+          </Field>
+          <Field
+            label="Meta description (SEO & link preview)"
+            hint="The short text shown under your title in Google results and link previews. Leave blank to use your tagline."
+          >
+            <textarea
+              className="input min-h-[80px] resize-y"
+              value={form.metaDescription ?? ""}
+              onChange={(e) => set("metaDescription", e.target.value)}
+              placeholder="e.g. Full-stack developer & web designer building modern web apps and digital products."
             />
           </Field>
           <Field label="Bio">

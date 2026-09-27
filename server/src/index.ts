@@ -3,10 +3,12 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from "node:http";
 import path from "node:path";
+import fs from "node:fs";
 import { z } from "zod";
 import { env } from "./env.js";
 import { HttpError } from "./utils.js";
 import { initRealtime } from "./realtime.js";
+import { prisma } from "./prisma.js";
 
 import authRoutes from "./routes/auth.js";
 import projectRoutes from "./routes/projects.js";
@@ -65,15 +67,78 @@ app.use("/api", (_req, res) => {
 // ---- Serve the built frontend in production ----
 // The React app is a static build; the backend serves it so the API,
 // WebSocket and site all share one origin (no CORS / cookie issues).
+// For HTML requests we inject the profile's title/description meta tags so
+// link previews (WhatsApp, etc.) and search engines reflect admin changes.
 if (env.NODE_ENV === "production") {
   const clientDist = path.resolve(
     process.cwd(),
     process.env.CLIENT_DIST ?? "../client/dist"
   );
-  app.use(express.static(clientDist));
-  // SPA fallback: any non-API, non-file route returns index.html
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(clientDist, "index.html"));
+
+  // Load the built index.html once, and strip any static title/description/
+  // og/twitter tags so we can inject fresh ones from the database per request.
+  const rawIndex = fs.readFileSync(path.join(clientDist, "index.html"), "utf8");
+  const indexTemplate = rawIndex
+    .replace(/\s*<meta\s+property=["']og:[^>]*>/gi, "")
+    .replace(/\s*<meta\s+name=["']twitter:[^>]*>/gi, "")
+    .replace(/\s*<meta\s+name=["']description["'][^>]*>/gi, "");
+
+  const esc = (s: string) =>
+    s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  async function renderIndex(reqUrl: string, host: string): Promise<string> {
+    let title = "Portfolio";
+    let description = "";
+    let image = "";
+    try {
+      const p = await prisma.profile.findUnique({ where: { id: "singleton" } });
+      if (p) {
+        title = (p.metaTitle && p.metaTitle.trim()) || `${p.name} — ${p.title}`;
+        description =
+          (p.metaDescription && p.metaDescription.trim()) || p.tagline || "";
+        image = p.avatar || "";
+      }
+    } catch {
+      /* fall back to defaults if the DB is unavailable */
+    }
+
+    const url = `https://${host}${reqUrl}`;
+    const tags = [
+      `<meta name="description" content="${esc(description)}" />`,
+      `<meta property="og:type" content="website" />`,
+      `<meta property="og:url" content="${esc(url)}" />`,
+      `<meta property="og:title" content="${esc(title)}" />`,
+      `<meta property="og:description" content="${esc(description)}" />`,
+      image ? `<meta property="og:image" content="${esc(image)}" />` : "",
+      `<meta name="twitter:card" content="${image ? "summary_large_image" : "summary"}" />`,
+      `<meta name="twitter:title" content="${esc(title)}" />`,
+      `<meta name="twitter:description" content="${esc(description)}" />`,
+      image ? `<meta name="twitter:image" content="${esc(image)}" />` : "",
+    ]
+      .filter(Boolean)
+      .join("\n    ");
+
+    return indexTemplate
+      .replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`)
+      .replace("</head>", `    ${tags}\n  </head>`);
+  }
+
+  // Serve static assets but NOT index.html (so all HTML goes through injection).
+  app.use(express.static(clientDist, { index: false }));
+
+  // SPA fallback: any non-API route returns index.html with injected meta tags.
+  app.get("*", async (req, res, next) => {
+    try {
+      const html = await renderIndex(req.originalUrl, req.get("host") ?? "");
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (e) {
+      next(e);
+    }
   });
 }
 

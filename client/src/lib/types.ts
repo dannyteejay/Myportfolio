@@ -45,6 +45,7 @@ export interface Profile {
   name: string;
   title: string;
   metaTitle: string | null;
+  metaDescription: string | null;
   tagline: string;
   bio: string;
   email: string;

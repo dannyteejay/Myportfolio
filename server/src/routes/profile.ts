@@ -11,6 +11,7 @@ const schema = z.object({
   name: z.string().min(1),
   title: z.string().min(1),
   metaTitle: z.string().nullable().optional(),
+  metaDescription: z.string().nullable().optional(),
   tagline: z.string().min(1),
   bio: z.string().min(1),
   email: z.string().email(),

@@ -75,6 +75,7 @@ model Profile {
   name       String
   title      String
   metaTitle  String?
+  metaDescription String?
   tagline    String
   bio        String
   email      String
