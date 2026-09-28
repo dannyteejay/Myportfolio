@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { z } from "zod";
 import crypto from "node:crypto";
 import { prisma } from "../prisma.js";

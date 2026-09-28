@@ -1,4 +1,4 @@
-﻿import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 import { env } from "./env.js";
 
 // Email is optional: if SMTP creds aren't configured we log the link instead
