@@ -49,11 +49,18 @@ export async function rotateRefreshToken(oldToken: string) {
     include: { user: true },
   });
   if (!existing) throw new HttpError(401, "Invalid refresh token");
+
+  const { count } = await prisma.refreshToken.deleteMany({
+    where: { id: existing.id },
+  });
+  if (count === 0) {
+    throw new HttpError(401, "Refresh token already used");
+  }
+
   if (existing.expiresAt < new Date()) {
-    await prisma.refreshToken.delete({ where: { id: existing.id } });
     throw new HttpError(401, "Refresh token expired");
   }
-  await prisma.refreshToken.delete({ where: { id: existing.id } });
+
   const newToken = await issueRefreshToken(existing.userId);
   return { user: existing.user, refreshToken: newToken };
 }
