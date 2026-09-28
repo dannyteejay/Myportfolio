@@ -45,7 +45,7 @@ function DocumentTitle() {
     if (!profile) return;
     const base =
       profile.metaTitle?.trim() ||
-      [profile.name, profile.title].filter(Boolean).join(" â€” ");
+      [profile.name, profile.title].filter(Boolean).join(" — ");
     if (base) document.title = base;
   }, [profile]);
   return null;

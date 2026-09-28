@@ -76,7 +76,7 @@ export default function ForgotPassword() {
               disabled={loading}
               className="btn-primary w-full"
             >
-              {loading ? "Sendingâ€¦" : "Send reset link"}
+              {loading ? "Sending…" : "Send reset link"}
               {!loading && <IconArrowRight className="h-4 w-4" />}
             </button>
           </form>
@@ -86,7 +86,7 @@ export default function ForgotPassword() {
           to="/admin/login"
           className="mt-6 block text-center text-sm text-ink-400 hover:text-heading"
         >
-          â† Back to sign in
+          ← Back to sign in
         </Link>
       </motion.div>
     </div>
