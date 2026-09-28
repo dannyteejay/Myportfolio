@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+﻿import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
@@ -21,7 +21,7 @@ async function main() {
   const hash = await bcrypt.hash(password, 10);
   await prisma.user.upsert({
     where: { email },
-    update: { password: hash },
+    update: {},
     create: { email, password: hash, name: "Site Admin", role: "ADMIN" },
   });
 
@@ -34,7 +34,7 @@ async function main() {
       name: "Alex Morgan",
       title: "Full-Stack Engineer & Web Designer",
       tagline: "I build fast, elegant software and design interfaces people love.",
-      bio: "I'm a full-stack developer and designer with 6+ years crafting production web apps and polished digital products. I specialize in React, TypeScript, and Node.js, with a strong eye for clean, accessible UI. I turn complex problems into simple, delightful experiences — from architecture to the final pixel.",
+      bio: "I'm a full-stack developer and designer with 6+ years crafting production web apps and polished digital products. I specialize in React, TypeScript, and Node.js, with a strong eye for clean, accessible UI. I turn complex problems into simple, delightful experiences â€” from architecture to the final pixel.",
       email: "hello@alexmorgan.dev",
       location: "Lagos, Nigeria",
       githubUrl: "https://github.com/",
@@ -99,7 +99,7 @@ async function main() {
       coverImage: "/media/project-aurora.svg",
     },
     {
-      title: "Verdant — Sustainable Store",
+      title: "Verdant â€” Sustainable Store",
       category: "webdesign",
       summary: "Award-worthy e-commerce concept for an eco-friendly lifestyle brand.",
       description:
@@ -179,7 +179,7 @@ async function main() {
     });
   }
 
-  // Payment settings (singleton) — configure the rest in the admin dashboard
+  // Payment settings (singleton) â€” configure the rest in the admin dashboard
   await prisma.paymentSettings.upsert({
     where: { id: "singleton" },
     update: {},
@@ -209,4 +209,5 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
+
 

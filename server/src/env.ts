@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+﻿import dotenv from "dotenv";
 dotenv.config();
 
 function required(name: string, fallback?: string): string {
@@ -18,4 +18,7 @@ export const env = {
   ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? "admin@portfolio.dev",
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ?? "Admin123!",
   NODE_ENV: process.env.NODE_ENV ?? "development",
+  APP_URL: process.env.APP_URL ?? "http://localhost:5173",
+  SMTP_USER: process.env.SMTP_USER ?? "",
+  SMTP_PASS: process.env.SMTP_PASS ?? "",
 };

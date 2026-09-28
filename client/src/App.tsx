@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useRealtime } from "./hooks/useRealtime";
@@ -14,6 +14,8 @@ import Contact from "./pages/Contact";
 import PaymentCallback from "./pages/PaymentCallback";
 
 import Login from "./pages/admin/Login";
+import ForgotPassword from "./pages/admin/ForgotPassword";
+import ResetPassword from "./pages/admin/ResetPassword";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminProjects from "./pages/admin/AdminProjects";
@@ -43,7 +45,7 @@ function DocumentTitle() {
     if (!profile) return;
     const base =
       profile.metaTitle?.trim() ||
-      [profile.name, profile.title].filter(Boolean).join(" — ");
+      [profile.name, profile.title].filter(Boolean).join(" â€” ");
     if (base) document.title = base;
   }, [profile]);
   return null;
@@ -67,6 +69,8 @@ export default function App() {
         <Route path="/payment/callback" element={<PaymentCallback />} />
 
         <Route path="/admin/login" element={<Login />} />
+        <Route path="/admin/forgot-password" element={<ForgotPassword />} />
+        <Route path="/admin/reset-password" element={<ResetPassword />} />
         <Route
           path="/admin"
           element={

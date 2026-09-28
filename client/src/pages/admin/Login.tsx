@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../hooks/useAuth";
@@ -11,8 +11,8 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
-  const [email, setEmail] = useState("admin@portfolio.dev");
-  const [password, setPassword] = useState("Admin123!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const from = (location.state as any)?.from?.pathname ?? "/admin";
@@ -71,7 +71,15 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="label">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="label">Password</label>
+              <Link
+                to="/admin/forgot-password"
+                className="text-xs text-brand-400 hover:text-brand-300"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <input
               type="password"
               className="input"
@@ -81,21 +89,16 @@ export default function Login() {
             />
           </div>
           <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Signing inâ€¦" : "Sign in"}
             {!loading && <IconArrowRight className="h-4 w-4" />}
           </button>
         </form>
-
-        <div className="mt-6 rounded-xl bg-line/5 p-3 text-center text-xs text-ink-400 ring-1 ring-line/10">
-          Demo credentials are pre-filled. <br />
-          <span className="text-ink-300">admin@portfolio.dev / Admin123!</span>
-        </div>
 
         <Link
           to="/"
           className="mt-6 block text-center text-sm text-ink-400 hover:text-heading"
         >
-          ← Back to site
+          â† Back to site
         </Link>
       </motion.div>
     </div>
