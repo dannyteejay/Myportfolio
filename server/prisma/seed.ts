@@ -199,7 +199,7 @@ async function main() {
     },
   });
 
-  console.log("Seed complete. Admin login:", email, "/", password);
+  console.log("Seed complete. Admin user ready for:", email);
 }
 
 main()
@@ -209,3 +209,4 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
+
