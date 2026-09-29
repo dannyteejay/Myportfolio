@@ -44,6 +44,17 @@ async function main() {
     },
   });
 
+  // Demo content below is only for a FRESH database. If any content already
+  // exists, skip it so cold-start reseeds never overwrite your admin edits.
+  const hasContent =
+    (await prisma.project.count()) > 0 ||
+    (await prisma.product.count()) > 0 ||
+    (await prisma.skill.count()) > 0;
+  if (hasContent) {
+    console.log("Existing content found - skipping demo seed. Admin ensured:", email);
+    return;
+  }
+
   // Skills
   const skills = [
     { name: "React", category: "frontend", level: 95, order: 1 },
