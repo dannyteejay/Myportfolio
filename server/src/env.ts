@@ -21,4 +21,6 @@ export const env = {
   APP_URL: process.env.APP_URL ?? "http://localhost:5173",
   SMTP_USER: process.env.SMTP_USER ?? "",
   SMTP_PASS: process.env.SMTP_PASS ?? "",
+  RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
+  RESEND_FROM: process.env.RESEND_FROM ?? "onboarding@resend.dev",
 };
