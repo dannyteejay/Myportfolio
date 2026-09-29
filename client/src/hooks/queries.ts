@@ -251,3 +251,16 @@ export async function uploadFile(file: File): Promise<string> {
   });
   return data.url;
 }
+
+// Upload a downloadable product file (zip, pdf, etc.) â€” larger, no image filter.
+export async function uploadProductFile(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const data = await api<{ url: string }>(`/uploads/file`, {
+    method: "POST",
+    body: fd,
+    auth: true,
+    isForm: true,
+  });
+  return data.url;
+}

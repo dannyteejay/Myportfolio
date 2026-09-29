@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { uploadFile } from "../../hooks/queries";
+import { uploadFile, uploadProductFile } from "../../hooks/queries";
 import { useToast } from "../Toast";
 import { IconUpload, IconX, IconTrash } from "../Icons";
 
@@ -171,7 +171,7 @@ export function ImageUpload({
         >
           <IconUpload className="h-6 w-6" />
           <span className="text-sm font-medium">
-            {uploading ? "Uploading…" : "Click to upload image"}
+            {uploading ? "Uploadingâ€¦" : "Click to upload image"}
           </span>
           <span className="text-xs text-ink-500">PNG, JPG, WebP, SVG up to 8MB</span>
         </button>
@@ -190,7 +190,89 @@ export function ImageUpload({
       <div className="mt-2">
         <input
           className="input text-xs"
-          placeholder="…or paste an image URL"
+          placeholder="â€¦or paste an image URL"
+          value={value ?? ""}
+          onChange={(e) => onChange(e.target.value || null)}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function FileUpload({
+  value,
+  onChange,
+}: {
+  value: string | null | undefined;
+  onChange: (url: string | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const toast = useToast();
+
+  async function handleFile(file: File) {
+    setUploading(true);
+    try {
+      const url = await uploadProductFile(file);
+      onChange(url);
+      toast("File uploaded");
+    } catch (e: any) {
+      toast(e.message ?? "Upload failed", "error");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  const fileName = value ? value.split("/").pop() : "";
+
+  return (
+    <div>
+      {value ? (
+        <div className="flex items-center justify-between gap-2 rounded-xl bg-line/5 px-3 py-2 ring-1 ring-line/10">
+          <a
+            href={value}
+            target="_blank"
+            rel="noreferrer"
+            className="truncate text-sm text-brand-300 hover:underline"
+            title={value}
+          >
+            {fileName || "Attached file"}
+          </a>
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="btn-danger btn-sm !px-2"
+          >
+            <IconTrash className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line/10 bg-line/5 py-6 text-ink-400 transition-colors hover:border-brand-400/40 hover:text-brand-300"
+        >
+          <IconUpload className="h-6 w-6" />
+          <span className="text-sm font-medium">
+            {uploading ? "Uploadingâ€¦" : "Click to upload product file"}
+          </span>
+          <span className="text-xs text-ink-500">ZIP, PDF, etc. up to 50MB</span>
+        </button>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) handleFile(f);
+          e.target.value = "";
+        }}
+      />
+      <div className="mt-2">
+        <input
+          className="input text-xs"
+          placeholder="â€¦or paste a direct download URL"
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value || null)}
         />

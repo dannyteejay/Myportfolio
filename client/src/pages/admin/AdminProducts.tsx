@@ -9,6 +9,7 @@ import { formatMoney } from "../../lib/format";
 import {
   ConfirmDialog,
   Field,
+  FileUpload,
   ImageUpload,
   Modal,
   PageHeader,
@@ -189,9 +190,9 @@ export default function AdminProducts() {
                     setEditing({ ...editing, currency: e.target.value })
                   }
                 >
-                  <option value="NGN">NGN (₦)</option>
+                  <option value="NGN">NGN (â‚¦)</option>
                   <option value="USD">USD ($)</option>
-                  <option value="GHS">GHS (₵)</option>
+                  <option value="GHS">GHS (â‚µ)</option>
                   <option value="KES">KES</option>
                   <option value="ZAR">ZAR (R)</option>
                 </select>
@@ -204,16 +205,12 @@ export default function AdminProducts() {
               />
             </Field>
             <Field
-              label="Download / file URL"
-              hint="Link buyers receive after purchase"
+              label="Product file (download)"
+              hint="Buyers can download this after a successful payment"
             >
-              <input
-                className="input"
-                value={editing.fileUrl ?? ""}
-                onChange={(e) =>
-                  setEditing({ ...editing, fileUrl: e.target.value })
-                }
-                placeholder="https://…"
+              <FileUpload
+                value={editing.fileUrl}
+                onChange={(url) => setEditing({ ...editing, fileUrl: url })}
               />
             </Field>
             <Field label="Tags">
@@ -250,7 +247,7 @@ export default function AdminProducts() {
                 disabled={save.isPending}
                 className="btn-primary"
               >
-                {save.isPending ? "Saving…" : "Save product"}
+                {save.isPending ? "Savingâ€¦" : "Save product"}
               </button>
             </div>
           </div>

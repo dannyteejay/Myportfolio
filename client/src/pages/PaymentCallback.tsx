@@ -10,6 +10,7 @@ type State = "loading" | "paid" | "pending" | "failed";
 export default function PaymentCallback() {
   const [params] = useSearchParams();
   const [state, setState] = useState<State>("loading");
+  const [hasFile, setHasFile] = useState(false);
 
   const gateway = params.get("gateway") ?? "";
   // Paystack returns ?reference=, Flutterwave ?transaction_id=&tx_ref=&status=
@@ -32,8 +33,20 @@ export default function PaymentCallback() {
         const res = await api<{ status: string }>(
           `/payments/verify?${q.toString()}`
         );
-        if (res.status === "paid") setState("paid");
-        else if (res.status === "failed" || res.status === "cancelled")
+        if (res.status === "paid") {
+          setState("paid");
+          // Check whether a downloadable file is attached to this order.
+          if (reference) {
+            try {
+              const access = await api<{ hasFile: boolean }>(
+                `/payments/access/${reference}`
+              );
+              setHasFile(Boolean(access.hasFile));
+            } catch {
+              /* no download info available */
+            }
+          }
+        } else if (res.status === "failed" || res.status === "cancelled")
           setState("failed");
         else setState("pending");
       } catch {
@@ -45,12 +58,14 @@ export default function PaymentCallback() {
 
   const config = {
     loading: {
-      title: "Verifying payment…",
+      title: "Verifying paymentâ€¦",
       body: "Please wait while we confirm your transaction.",
     },
     paid: {
-      title: "Payment successful! 🎉",
-      body: "Thank you for your purchase. A receipt has been sent to your email, and you'll receive your download shortly.",
+      title: "Payment successful! ðŸŽ‰",
+      body: hasFile
+        ? "Thank you for your purchase. Click the button below to download your product. Keep your reference in case you need to download again."
+        : "Thank you for your purchase. Your order is confirmed â€” if this product has a downloadable file it will appear here, otherwise you'll be contacted with access details.",
     },
     pending: {
       title: "Payment pending",
@@ -79,7 +94,7 @@ export default function PaymentCallback() {
           )}
           {state === "pending" && (
             <span className="grid h-16 w-16 place-items-center rounded-full bg-amber-500/15 text-amber-300 font-display text-2xl font-bold">
-              …
+              â€¦
             </span>
           )}
           {state === "failed" && (
@@ -98,6 +113,16 @@ export default function PaymentCallback() {
           <p className="mt-4 rounded-lg bg-line/5 px-3 py-2 text-xs text-ink-400">
             Reference: <span className="text-ink-200">{reference}</span>
           </p>
+        )}
+
+        {state === "paid" && hasFile && reference && (
+          <a
+            href={`/api/payments/download/${reference}`}
+            className="btn-primary mt-6 w-full justify-center"
+          >
+            Download your product
+            <IconArrowRight className="h-4 w-4" />
+          </a>
         )}
 
         <div className="mt-7 flex flex-col gap-2 sm:flex-row sm:justify-center">

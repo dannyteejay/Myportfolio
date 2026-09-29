@@ -388,7 +388,7 @@ router.put("/settings", requireAuth, async (req, res, next) => {
       where: { id: "singleton" },
       data,
     });
-    emit("settings:changed", {});   // <-- ADD THIS LINE
+    emit("settings:changed", {});
     ok(res, updated);
   } catch (e) {
     next(e);
@@ -431,6 +431,60 @@ router.delete("/orders/:id", requireAuth, async (req, res, next) => {
     await prisma.order.delete({ where: { id: req.params.id } });
     emit("orders:changed", { action: "delete", id: req.params.id });
     ok(res, { success: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+/* ----------------------------- Digital delivery ---------------------------- */
+// Info endpoint so the success page knows whether a download is available.
+router.get("/access/:reference", async (req, res, next) => {
+  try {
+    const { reference } = req.params;
+    const order = await prisma.order.findUnique({ where: { reference } });
+    if (!order) throw new HttpError(404, "Order not found");
+    let hasFile = false;
+    let title = order.productTitle;
+    if (order.productId) {
+      const product = await prisma.product.findUnique({
+        where: { id: order.productId },
+      });
+      hasFile = Boolean(product?.fileUrl);
+      if (product?.title) title = product.title;
+    }
+    ok(res, {
+      status: order.status,
+      paid: order.status === "paid",
+      title,
+      hasFile,
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// Secure download: only works once the order is paid; redirects to the file.
+router.get("/download/:reference", async (req, res, next) => {
+  try {
+    const { reference } = req.params;
+    const order = await prisma.order.findUnique({ where: { reference } });
+    if (!order) throw new HttpError(404, "Order not found");
+    if (order.status !== "paid") {
+      throw new HttpError(403, "This order has not been paid yet.");
+    }
+    if (!order.productId) {
+      throw new HttpError(404, "No product is linked to this order.");
+    }
+    const product = await prisma.product.findUnique({
+      where: { id: order.productId },
+    });
+    if (!product?.fileUrl) {
+      throw new HttpError(
+        404,
+        "No downloadable file is attached to this product yet. Please contact support."
+      );
+    }
+    return res.redirect(302, product.fileUrl);
   } catch (e) {
     next(e);
   }

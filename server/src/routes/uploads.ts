@@ -81,4 +81,33 @@ router.post("/", requireAuth, upload.single("file"), async (req, res, next) => {
   }
 });
 
+// Larger, unrestricted upload for downloadable product files (zip, pdf, etc.)
+const productFileUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+});
+
+router.post(
+  "/file",
+  requireAuth,
+  productFileUpload.single("file"),
+  async (req, res, next) => {
+    try {
+      if (!req.file) throw new HttpError(400, "No file uploaded");
+      let url: string;
+      if (cloudinaryEnabled) {
+        url = await uploadToCloudinary(req.file.buffer);
+      } else {
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const name = crypto.randomBytes(12).toString("hex") + ext;
+        fs.writeFileSync(path.join(uploadDir, name), req.file.buffer);
+        url = `/uploads/${name}`;
+      }
+      ok(res, { url }, 201);
+    } catch (e) {
+      next(e);
+    }
+  }
+);
+
 export default router;
