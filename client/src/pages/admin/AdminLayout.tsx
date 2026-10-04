@@ -56,10 +56,10 @@ export default function AdminLayout() {
             end={l.end}
             onClick={() => setOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
                 isActive
-                  ? "bg-brand-500/15 text-brand-200 ring-1 ring-brand-400/20"
-                  : "text-ink-400 hover:bg-line/5 hover:text-heading"
+                  ? "bg-brand-50 text-brand-800 ring-1 ring-brand-500/25 dark:bg-brand-500/15 dark:text-brand-200 dark:ring-brand-400/20"
+                  : "text-ink-300 hover:bg-line/5 hover:text-heading"
               }`
             }
           >
@@ -85,13 +85,13 @@ export default function AdminLayout() {
         </a>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-300 hover:bg-red-500/10"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
         >
           <IconLogout className="h-5 w-5" />
           Sign out
         </button>
         <div className="mt-3 flex items-center gap-3 rounded-xl bg-line/5 px-3 py-2.5">
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-500/20 text-xs font-bold text-brand-200">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-100 text-xs font-bold text-brand-800 dark:bg-brand-500/20 dark:text-brand-200">
             {user?.name?.[0] ?? "A"}
           </span>
           <div className="min-w-0">

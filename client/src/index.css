@@ -13,10 +13,10 @@
   --ink-50: 15 20 32;
   --ink-100: 17 24 39;
   --ink-200: 36 44 60;
-  --ink-300: 58 67 84;
-  --ink-400: 82 92 110;
-  --ink-500: 100 110 128;
-  --ink-600: 120 130 148;
+  --ink-300: 45 55 72;
+  --ink-400: 55 65 81;
+  --ink-500: 75 85 99;
+  --ink-600: 100 116 139;
   --ink-700: 203 209 219;
   --ink-800: 226 230 236;
   --ink-900: 255 255 255;
@@ -65,6 +65,7 @@ html {
 
 body {
   @apply bg-ink-950 text-ink-100 font-sans antialiased;
+  text-rendering: optimizeLegibility;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -72,6 +73,37 @@ body {
 ::selection {
   background: rgba(53, 93, 255, 0.28);
   color: rgb(var(--heading));
+}
+
+/* Light-mode contrast helpers.
+   Several UI elements use soft dark-mode colors such as text-brand-200 or
+   text-emerald-300. Those become pastel on white backgrounds, so in light mode
+   we remap them to stronger accessible shades while leaving dark mode intact. */
+html:not(.dark) .text-brand-200,
+html:not(.dark) .text-brand-300,
+html:not(.dark) .text-brand-400 {
+  color: #1d4ed8 !important;
+}
+
+html:not(.dark) .hover\:text-brand-200:hover,
+html:not(.dark) .hover\:text-brand-300:hover,
+html:not(.dark) .hover\:text-brand-400:hover {
+  color: #1e40af !important;
+}
+
+html:not(.dark) .text-emerald-200,
+html:not(.dark) .text-emerald-300 {
+  color: #047857 !important;
+}
+
+html:not(.dark) .text-red-200,
+html:not(.dark) .text-red-300 {
+  color: #b91c1c !important;
+}
+
+html:not(.dark) .text-amber-200,
+html:not(.dark) .text-amber-300 {
+  color: #b45309 !important;
 }
 
 /* Scrollbar */
