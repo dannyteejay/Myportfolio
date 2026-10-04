@@ -10,6 +10,7 @@ import {
   ConfirmDialog,
   Field,
   FileUpload,
+  GalleryImagesUpload,
   ImageUpload,
   Modal,
   PageHeader,
@@ -28,6 +29,7 @@ const empty: Draft = {
   priceMajor: 0,
   currency: "NGN",
   coverImage: "",
+  galleryImages: [],
   fileUrl: "",
   tags: [],
   published: true,
@@ -43,7 +45,11 @@ export default function AdminProducts() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   function startEdit(p: Product) {
-    setEditing({ ...p, priceMajor: p.price / 100 });
+    setEditing({
+      ...p,
+      galleryImages: p.galleryImages ?? [],
+      priceMajor: p.price / 100,
+    });
   }
 
   async function handleSave() {
@@ -97,9 +103,9 @@ export default function AdminProducts() {
           {(products ?? []).map((p) => (
             <div key={p.id} className="card flex flex-wrap items-center gap-4 p-4">
               <div className="h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-line/5">
-                {p.coverImage && (
+                {(p.coverImage || p.galleryImages?.[0]) && (
                   <img
-                    src={p.coverImage}
+                    src={p.coverImage || p.galleryImages?.[0]}
                     alt=""
                     className="h-full w-full object-cover"
                   />
@@ -121,6 +127,12 @@ export default function AdminProducts() {
                   >
                     {p.published ? "Published" : "Draft"}
                   </span>
+                  {(p.galleryImages?.length ?? 0) > 0 && (
+                    <span className="rounded-full bg-line/5 px-2 py-0.5 font-medium text-ink-300">
+                      {p.galleryImages.length} gallery image
+                      {p.galleryImages.length === 1 ? "" : "s"}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
@@ -198,10 +210,24 @@ export default function AdminProducts() {
                 </select>
               </Field>
             </div>
-            <Field label="Cover image">
+            <Field
+              label="Cover image"
+              hint="Main thumbnail shown on the store card. If empty, the first gallery image is used."
+            >
               <ImageUpload
                 value={editing.coverImage}
                 onChange={(url) => setEditing({ ...editing, coverImage: url })}
+              />
+            </Field>
+            <Field
+              label="Gallery images"
+              hint="Add multiple screenshots/previews. These are shown on the store page preview modal."
+            >
+              <GalleryImagesUpload
+                value={editing.galleryImages ?? []}
+                onChange={(galleryImages) =>
+                  setEditing({ ...editing, galleryImages })
+                }
               />
             </Field>
             <Field

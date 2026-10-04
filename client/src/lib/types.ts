@@ -24,6 +24,7 @@ export interface Product {
   price: number; // in kobo
   currency: string;
   coverImage: string | null;
+  galleryImages: string[];
   fileUrl: string | null;
   tags: string[];
   published: boolean;

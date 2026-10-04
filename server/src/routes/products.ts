@@ -13,6 +13,7 @@ const upsertSchema = z.object({
   price: z.number().int().min(0),
   currency: z.string().optional(),
   coverImage: z.string().nullable().optional(),
+  galleryImages: z.array(z.string()).optional(),
   fileUrl: z.string().nullable().optional(),
   tags: z.array(z.string()).optional(),
   published: z.boolean().optional(),
@@ -52,7 +53,12 @@ router.post("/", requireAuth, async (req, res, next) => {
       !!(await prisma.product.findUnique({ where: { slug: s } }))
     );
     const product = await prisma.product.create({
-      data: { ...data, tags: data.tags ?? [], slug },
+      data: {
+        ...data,
+        tags: data.tags ?? [],
+        galleryImages: data.galleryImages ?? [],
+        slug,
+      },
     });
     emit("products:changed", { action: "create", id: product.id });
     ok(res, product, 201);

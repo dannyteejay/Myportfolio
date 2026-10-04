@@ -199,6 +199,164 @@ export function ImageUpload({
   );
 }
 
+export function GalleryImagesUpload({
+  value,
+  onChange,
+}: {
+  value: string[] | null | undefined;
+  onChange: (urls: string[]) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const toast = useToast();
+  const images = value ?? [];
+
+  async function handleFiles(files: FileList) {
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        uploaded.push(await uploadFile(file));
+      }
+      onChange([...images, ...uploaded]);
+      toast(uploaded.length === 1 ? "Gallery image uploaded" : "Gallery images uploaded");
+    } catch (e: any) {
+      toast(e.message ?? "Upload failed", "error");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function addUrl() {
+    const url = urlInput.trim();
+    if (!url) return;
+    if (images.includes(url)) {
+      toast("That image is already in the gallery", "info");
+      setUrlInput("");
+      return;
+    }
+    onChange([...images, url]);
+    setUrlInput("");
+  }
+
+  function remove(index: number) {
+    onChange(images.filter((_, i) => i !== index));
+  }
+
+  function move(index: number, direction: -1 | 1) {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= images.length) return;
+    const next = [...images];
+    [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+    onChange(next);
+  }
+
+  return (
+    <div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line/10 bg-line/5 text-ink-400 transition-colors hover:border-brand-400/40 hover:text-brand-300"
+        >
+          <IconUpload className="h-6 w-6" />
+          <span className="text-sm font-medium">
+            {uploading ? "Uploadingâ€¦" : "Upload gallery images"}
+          </span>
+          <span className="text-xs text-ink-500">Select multiple screenshots</span>
+        </button>
+        <div className="rounded-xl bg-line/5 p-3 ring-1 ring-line/10">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-ink-500">
+            Paste image URL
+          </label>
+          <div className="flex gap-2">
+            <input
+              className="input text-xs"
+              placeholder="https://example.com/screenshot.png"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addUrl();
+                }
+              }}
+            />
+            <button type="button" onClick={addUrl} className="btn-ghost btn-sm">
+              Add
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-ink-500">
+            Use this for externally hosted screenshots.
+          </p>
+        </div>
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = e.target.files;
+          if (files) handleFiles(files);
+          e.target.value = "";
+        }}
+      />
+
+      {images.length > 0 ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {images.map((url, index) => (
+            <div key={`${url}-${index}`} className="overflow-hidden rounded-xl bg-line/5 ring-1 ring-line/10">
+              <div className="relative aspect-[16/9] bg-ink-950/70">
+                <img src={url} alt="" className="h-full w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => remove(index)}
+                  className="btn-danger btn-sm absolute right-2 top-2 !px-2"
+                >
+                  <IconTrash className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="flex items-center justify-between gap-2 p-2">
+                <span className="truncate text-xs text-ink-400" title={url}>
+                  Image {index + 1}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => move(index, -1)}
+                    disabled={index === 0}
+                    className="btn-ghost btn-sm !px-2 disabled:opacity-40"
+                  >
+                    â†‘
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => move(index, 1)}
+                    disabled={index === images.length - 1}
+                    className="btn-ghost btn-sm !px-2 disabled:opacity-40"
+                  >
+                    â†“
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 rounded-xl bg-line/5 p-3 text-sm text-ink-500 ring-1 ring-line/10">
+          No gallery images yet. Add screenshots of the homepage, admin dashboard,
+          mobile view, checkout flow, or any feature buyers should see.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function FileUpload({
   value,
   onChange,

@@ -63,6 +63,7 @@ model Product {
   price       Int      // price in kobo (NGN minor units)
   currency    String   @default("NGN")
   coverImage  String?
+  galleryImages String[] @default([]) // extra screenshots/previews for store products
   fileUrl     String?  // downloadable asset (for digital products)
   tags        String[] @default([])
   published   Boolean  @default(true)
